@@ -13,6 +13,7 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.networklibrary.core.parsing.ParsingErrorException;
+import org.networklibrary.curator.config.CuratorConfigManager;
 
 
 
@@ -28,7 +29,7 @@ public class App
     {
     	Options options = new Options();
 		Option help = OptionBuilder.withDescription("Help message").create("help");
-		Option dbop = OptionBuilder.withArgName("[URL]").hasArg().withDescription("Neo4j instance to prime").withLongOpt("target").withType(String.class).create("db");
+		Option dbop = OptionBuilder.withArgName("[URL]").hasArg().withDescription("Neo4j instance to curate").withLongOpt("database").withType(String.class).create("db");
 		Option typeop = OptionBuilder.withArgName("[TYPE]").hasArg().withDescription("Types available:").withType(String.class).create("t");
 		Option configOp = OptionBuilder.hasArg().withDescription("Alternative config file").withLongOpt("config").withType(String.class).create("c");
 		Option extraOps = OptionBuilder.hasArg().withDescription("Extra configuration parameters for the import").withType(String.class).create("x");
@@ -80,19 +81,18 @@ public class App
 			if(line.hasOption("d")){
 				dictionary = line.getOptionValue("d");
 			}
-
-
-			List<String> inputFiles = line.getArgList();
-
+			
 			if(config != null && !config.isEmpty()){
 				log.info("user-supplied config file used: " + config);
 			}
 
-
-			//
+			CuratorConfigManager confMgr = new CuratorConfigManager(type,dictionary);
+			
+			Curator curator = new Curator(db,confMgr,extras);
+			curator.execute();
 			
 		}
-		catch( ParseException exp ) {
+		catch( ParseException | ParsingErrorException exp ) {
 			// oops, something went wrong
 			exp.printStackTrace();
 			System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );
