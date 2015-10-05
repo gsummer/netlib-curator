@@ -95,12 +95,11 @@ public class MirTargetingConsolidator implements Task {
 
 					cons.setProperty("data_source", "miRTargetingConsolidator");
 
-					int numRels = e.getValue().size();
+					
+//					int numRels = e.getValue().size();
 
-					double weight = numRels;
-					if(normfactor != null && normfactor > 0.0){
-						weight = weight / normfactor;
-					}
+					double weight = calcWeight(e);
+
 					cons.setProperty("weight", weight);
 					cons.setProperty("dbs", getDbName(e.getValue()));
 					++newRels;
@@ -111,9 +110,21 @@ public class MirTargetingConsolidator implements Task {
 		log.info("created " + newRels + " new Relationships");
 	}
 
+	private double calcWeight(Entry<Node, List<Relationship>> e) {
+		String[] dbs = getDbName(e.getValue());
+		
+		double weight = dbs.length;
+		
+		if(normfactor != null && normfactor > 0.0){
+			weight = weight / normfactor;
+		}
+		
+		return weight;
+	}
+
 	private String[] getDbName(List<Relationship> rels) {
 
-		List<String> res = new ArrayList<String>();
+		Set<String> res = new HashSet<String>();
 
 		for(Relationship r : rels){
 			if(r.hasProperty("data_source")){
