@@ -14,6 +14,7 @@ import org.networklibrary.curator.config.CuratorConfigManager;
 import org.networklibrary.curator.consolidating.MetaAnalysisConsolidator;
 import org.networklibrary.curator.consolidating.MirTargetingConsolidator;
 import org.networklibrary.curator.heattransfer.MetaHeatTransfer;
+import org.networklibrary.curator.heattransfer.MetaPPIHeatTransfer;
 import org.networklibrary.curator.rewiring.GraphRewiring;
 
 
@@ -28,6 +29,7 @@ public class Curator {
 		addParser("MIRC", "Merges miR interactions into a consolidated edge",MirTargetingConsolidator.class);
 		addParser("METAC", "Consolidated the meta analysis edges",MetaAnalysisConsolidator.class);
 		addParser("METAHEAT", "heat transfer for the meta analysis",MetaHeatTransfer.class);
+		addParser("METAPPIHEAT", "heat transfer for the meta analysis",MetaPPIHeatTransfer.class);
 		addParser("INDEX", "creates an index on a label and proeprty",IndexCreator.class);
 		addParser("REWIRE", "rewires edges",GraphRewiring.class);
 	}

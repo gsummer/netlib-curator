@@ -19,7 +19,7 @@ import org.neo4j.tooling.GlobalGraphOperations;
 import org.networklibrary.core.config.Dictionary;
 import org.networklibrary.curator.Task;
 
-public class MetaHeatTransfer implements Task {
+public class MetaPPIHeatTransfer implements Task {
 
 	protected static final Logger log = Logger.getLogger(MetaHeatTransfer.class.getName());
 
@@ -32,15 +32,14 @@ public class MetaHeatTransfer implements Task {
 
 	protected String postfix = "_effect";
 	
-	protected String direction = "incoming";
-	
 	protected String firstProperty = "weight";
 	
-	protected String secondProperty = "weight";
-
+	protected String secondProperty = "combined_score";
+	
+	protected int cutoff = 700;
+	
 	private Dictionary dict;
-
-
+	
 	@Override
 	public void setGraph(GraphDatabaseService g) {
 		this.g = g;
@@ -50,9 +49,7 @@ public class MetaHeatTransfer implements Task {
 	public void execute() {
 		Set<RelationshipType> relTypes = new HashSet<RelationshipType>();
 		Set<Node> outcomes = new HashSet<Node>();
-
-		Direction edgeDirection = Direction.valueOf(direction.toUpperCase());
-		
+	
 		try (Transaction tx = g.beginTx()) {
 			for(RelationshipType relType : GlobalGraphOperations.at(g).getAllRelationshipTypes()) {
 				// the valid relationship that are actually in the graph
@@ -73,22 +70,26 @@ public class MetaHeatTransfer implements Task {
 				Map<Node,List<Relationship>> neighbours = new HashMap<Node,List<Relationship>>();
 
 				// we operate under the assumption that only one edge connects two nodes. the consolidating should have ensured that
-				for(Relationship rel : outcome.getRelationships(edgeDirection,relTypes.toArray(new RelationshipType[relTypes.size()])) ){
+				for(Relationship rel : outcome.getRelationships(Direction.INCOMING,relTypes.toArray(new RelationshipType[relTypes.size()])) ){
 
 					Node neighbour = rel.getOtherNode(outcome);
 
 					double effect = (double)rel.getProperty(firstProperty,0.0);
 					String effectName = makeEffectName(outcome);
 
-					neighbour.setProperty(effectName, effect);
+					addEffect(neighbour,effectName,effect);
 
 					// these are the miRs with consolidated edges
-					for(Relationship r : neighbour.getRelationships(edgeDirection, relTypes.toArray(new RelationshipType[relTypes.size()]))){
-						double mirEffect = effect * (double)r.getProperty(secondProperty, 0.0);
+					for(Relationship r : neighbour.getRelationships(Direction.OUTGOING, relTypes.toArray(new RelationshipType[relTypes.size()]))){
+						Integer weight = (Integer)r.getProperty(secondProperty, 0);
+						
+						if(weight > cutoff){
+							double mirEffect = effect * weight.doubleValue();
 
-						Node miR = r.getOtherNode(neighbour);
+							Node protein = r.getOtherNode(neighbour);
 
-						addEffect(miR,effectName,mirEffect);
+							addEffect(protein,effectName,mirEffect);
+						}
 					}
 				}
 				tx.success();
@@ -111,7 +112,6 @@ public class MetaHeatTransfer implements Task {
 		String name = ((String)node.getProperty("name")) + postfix;
 		return name;
 	}
-
 	@Override
 	public void setExtraParameters(List<String> extras) {
 		if(extras != null){
@@ -133,11 +133,7 @@ public class MetaHeatTransfer implements Task {
 				case "postfix":
 					postfix = values[1];
 					break;
-					
-				case "direction":
-					direction = values[1];
-					break;
-					
+										
 				case "firstprop":
 					firstProperty = values[1];
 					break;
@@ -145,18 +141,25 @@ public class MetaHeatTransfer implements Task {
 				case "secondprop":
 					secondProperty = values[1];
 					break;
+					
+				case "cutoff":
+					cutoff = Integer.valueOf(values[1]);
+					break;
 				}
 
 			}
 
+			log.info("using postfix: " + postfix);
 			log.info("using outcome label: " + outcomeLabel);
 			log.info("using edgeTypes" + edgeTypes);
 		}
+
 	}
 
 	@Override
 	public void setDictionary(Dictionary dict) {
 		this.dict = dict;
+
 	}
 
 }
