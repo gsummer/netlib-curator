@@ -67,8 +67,7 @@ public class MetaPPIHeatTransfer implements Task {
 
 		for(Node outcome : outcomes) {
 			try (Transaction tx = g.beginTx()) {
-				Map<Node,List<Relationship>> neighbours = new HashMap<Node,List<Relationship>>();
-
+				
 				// we operate under the assumption that only one edge connects two nodes. the consolidating should have ensured that
 				for(Relationship rel : outcome.getRelationships(Direction.INCOMING,relTypes.toArray(new RelationshipType[relTypes.size()])) ){
 

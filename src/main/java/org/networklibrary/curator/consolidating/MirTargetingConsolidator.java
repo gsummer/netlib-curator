@@ -33,6 +33,7 @@ public class MirTargetingConsolidator implements Task {
 	protected String name = "cons_mir_targeting";
 
 	private Double normfactor = null;
+	private String weightName = "weight";
 
 	private Dictionary dict;
 
@@ -100,7 +101,7 @@ public class MirTargetingConsolidator implements Task {
 
 					double weight = calcWeight(e);
 
-					cons.setProperty("weight", weight);
+					cons.setProperty(getWeightName(), weight);
 					cons.setProperty("dbs", getDbName(e.getValue()));
 					++newRels;
 				}
@@ -170,6 +171,10 @@ public class MirTargetingConsolidator implements Task {
 			case "normfactor":
 				normfactor = Double.valueOf(values[1]);
 				break;
+				
+			case "weightname":
+				weightName = values[1];
+				break;
 			}
 
 		}
@@ -178,6 +183,7 @@ public class MirTargetingConsolidator implements Task {
 		log.info("using miR Labels: " + mirLabels);
 		log.info("using name: " + name);
 		log.info("using normfactor: " + normfactor);
+		log.info("using weightname: " + weightName);
 		//		log.info("using a header: " + header);
 
 	}
@@ -187,6 +193,9 @@ public class MirTargetingConsolidator implements Task {
 		this.dict = dict;
 	}
 
+	public String getWeightName(){
+		return weightName;
+	}
 
 
 }

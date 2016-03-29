@@ -31,7 +31,6 @@ public class App
 		Option help = OptionBuilder.withDescription("Help message").create("help");
 		Option dbop = OptionBuilder.withArgName("[URL]").hasArg().withDescription("Neo4j instance to curate").withLongOpt("database").withType(String.class).create("db");
 		Option typeop = OptionBuilder.withArgName("[TYPE]").hasArg().withDescription("Types available:").withType(String.class).create("t");
-		Option configOp = OptionBuilder.hasArg().withDescription("Alternative config file").withLongOpt("config").withType(String.class).create("c");
 		Option extraOps = OptionBuilder.hasArg().withDescription("Extra configuration parameters for the import").withType(String.class).create("x");
 		
 		Option dictionaryOp = OptionBuilder.hasArg().withDescription("Dictionary file to use").withLongOpt("dictionary").withType(String.class).create("d");
@@ -40,7 +39,6 @@ public class App
 		options.addOption(help);
 		options.addOption(dbop);
 		options.addOption(typeop);
-		options.addOption(configOp);
 		options.addOption(extraOps);
 		options.addOption(dictionaryOp);
 
@@ -67,11 +65,6 @@ public class App
 				type = line.getOptionValue("t");
 			}
 
-			String config = null;
-			if(line.hasOption("c")){
-				config = line.getOptionValue("c");
-			}
-
 			List<String> extras = null;
 			if(line.hasOption("x")){
 				extras = Arrays.asList(line.getOptionValues("x"));
@@ -82,10 +75,6 @@ public class App
 				dictionary = line.getOptionValue("d");
 			}
 			
-			if(config != null && !config.isEmpty()){
-				log.info("user-supplied config file used: " + config);
-			}
-
 			CuratorConfigManager confMgr = new CuratorConfigManager(type,dictionary);
 			
 			Curator curator = new Curator(db,confMgr,extras);
